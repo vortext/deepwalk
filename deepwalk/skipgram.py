@@ -12,6 +12,22 @@ logger = logging.getLogger("deepwalk")
 class Skipgram(Word2Vec):
     """A subclass to allow more customization of the Word2Vec internals."""
 
+    def reset_weights(self):
+      """Reset all projection weights to an initial (untrained) state, but keep the existing vocabulary."""
+      logger.info("resetting layer weights")
+      self.syn0 = np.empty((len(self.vocab), self.vector_size), dtype=REAL)
+      # randomize weights vector by vector, rather than materializing a huge random matrix in RAM at once
+      for i in xrange(len(self.vocab)):
+          # construct deterministic seed from word AND seed argument
+          self.syn0[i] = self.seeded_vector(self.index2word[i] + self.seed)
+      if self.hs:
+          self.syn1 = zeros((len(self.vocab), self.layer1_size), dtype=REAL)
+      if self.negative:
+          self.syn1neg = zeros((len(self.vocab), self.layer1_size), dtype=REAL)
+      self.syn0norm = None
+
+      self.syn0_lockf = ones(len(self.vocab), dtype=REAL)  # zeros suppress learning
+
     def __init__(self, vocabulary_counts=None, **kwargs):
 
         self.vocabulary_counts = None

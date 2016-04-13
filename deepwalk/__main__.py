@@ -38,23 +38,6 @@ except AttributeError:
 logger = logging.getLogger(__name__)
 LOGFORMAT = "%(asctime).19s %(levelname)s %(filename)s: %(lineno)s %(message)s"
 
-class Word2VecPatched(Skipgram):
-    def reset_weights(self):
-      """Reset all projection weights to an initial (untrained) state, but keep the existing vocabulary."""
-      logger.info("resetting layer weights")
-      self.syn0 = np.empty((len(self.vocab), self.vector_size), dtype=REAL)
-      # randomize weights vector by vector, rather than materializing a huge random matrix in RAM at once
-      for i in xrange(len(self.vocab)):
-          # construct deterministic seed from word AND seed argument
-          self.syn0[i] = self.seeded_vector(self.index2word[i] + self.seed)
-      if self.hs:
-          self.syn1 = zeros((len(self.vocab), self.layer1_size), dtype=REAL)
-      if self.negative:
-          self.syn1neg = zeros((len(self.vocab), self.layer1_size), dtype=REAL)
-      self.syn0norm = None
-
-      self.syn0_lockf = ones(len(self.vocab), dtype=REAL)  # zeros suppress learning
-
 def debug(type_, value, tb):
   if hasattr(sys, 'ps1') or not sys.stderr.isatty():
     sys.__excepthook__(type_, value, tb)
@@ -92,14 +75,14 @@ def process(args):
     walks = graph.build_deepwalk_corpus(G, num_paths=args.number_walks,
                                         path_length=args.walk_length, alpha=0, rand=random.Random(args.seed))
     print("Training...")
-    model = Word2VecPatched(walks,
-                            size=args.representation_size,
-                            window=args.window_size,
-                            min_count=0,
-                            workers=args.workers,
-                            iter=args.iter,
-                            sg=1,
-                            trim_rule=None)
+    model = Skipgram(walks,
+                     size=args.representation_size,
+                     window=args.window_size,
+                     min_count=0,
+                     workers=args.workers,
+                     iter=args.iter,
+                     sg=1,
+                     trim_rule=None)
   else:
     print("Data size {} is larger than limit (max-memory-data-size: {}).  Dumping walks to disk.".format(data_size, args.max_memory_data_size))
     print("Walking...")
@@ -130,15 +113,15 @@ def process(args):
 
 
     print("Training...")
-    model = Word2VecPatched(sentences=WalkIterator(),
-                            sg=1,
-                            vocabulary_counts=vertex_counts,
-                            size=args.representation_size,
-                            window=args.window_size,
-                            min_count=0,
-                            iter=args.iter,
-                            workers=args.workers,
-                            trim_rule=None)
+    model = Skipgram(sentences=WalkIterator(),
+                     sg=1,
+                     vocabulary_counts=vertex_counts,
+                     size=args.representation_size,
+                     window=args.window_size,
+                     min_count=0,
+                     iter=args.iter,
+                     workers=args.workers,
+                     trim_rule=None)
 
   model.save_word2vec_format(args.output, binary=args.binary)
 

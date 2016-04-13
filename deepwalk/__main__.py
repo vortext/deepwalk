@@ -47,6 +47,8 @@ def debug(type_, value, tb):
     print(u"\n")
     pdb.pm()
 
+import gensim
+print("Using fast gensim? {}".format(gensim.models.word2vec.FAST_VERSION))
 
 def process(args):
 
@@ -122,7 +124,7 @@ def process(args):
                      workers=args.workers,
                      trim_rule=None)
 
-  model.save_word2vec_format(args.output, binary=args.binary)
+  model.save_word2vec_format(args.output)
 
 
 def main():
@@ -162,9 +164,6 @@ def main():
 
   parser.add_argument('--undirected', default=True, type=bool,
                       help='Treat graph as undirected.')
-
-  parser.add_argument('--binary', default=False, type=bool,
-                      help='Save model as word2vec binary.')
 
   parser.add_argument('--vertex-freq-degree', default=False, action='store_true',
                       help='Use vertex degree to estimate the frequency of nodes '

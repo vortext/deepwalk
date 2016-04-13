@@ -92,7 +92,14 @@ def process(args):
     walks = graph.build_deepwalk_corpus(G, num_paths=args.number_walks,
                                         path_length=args.walk_length, alpha=0, rand=random.Random(args.seed))
     print("Training...")
-    model = Word2VecPatched(walks, size=args.representation_size, window=args.window_size, min_count=0, workers=args.workers, iter=args.iter, sg=1, trim_rule=None)
+    model = Word2VecPatched(walks,
+                            size=args.representation_size,
+                            window=args.window_size,
+                            min_count=0,
+                            workers=args.workers,
+                            iter=args.iter,
+                            sg=1,
+                            trim_rule=None)
   else:
     print("Data size {} is larger than limit (max-memory-data-size: {}).  Dumping walks to disk.".format(data_size, args.max_memory_data_size))
     print("Walking...")
@@ -133,7 +140,7 @@ def process(args):
                             workers=args.workers,
                             trim_rule=None)
 
-  model.save_word2vec_format(args.output)
+  model.save_word2vec_format(args.output, binary=args.binary)
 
 
 def main():
@@ -173,6 +180,9 @@ def main():
 
   parser.add_argument('--undirected', default=True, type=bool,
                       help='Treat graph as undirected.')
+
+  parser.add_argument('--binary', default=False, type=bool,
+                      help='Save model as word2vec binary.')
 
   parser.add_argument('--vertex-freq-degree', default=False, action='store_true',
                       help='Use vertex degree to estimate the frequency of nodes '

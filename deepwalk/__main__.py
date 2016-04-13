@@ -9,6 +9,7 @@ from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 import logging
 
+from skipgram import Skipgram
 from deepwalk import graph
 from deepwalk import walks as serialized_walks
 from gensim.models import Word2Vec
@@ -37,9 +38,7 @@ except AttributeError:
 logger = logging.getLogger(__name__)
 LOGFORMAT = "%(asctime).19s %(levelname)s %(filename)s: %(lineno)s %(message)s"
 
-
-
-class Word2VecPatched(Word2Vec):
+class Word2VecPatched(Skipgram):
     def reset_weights(self):
       """Reset all projection weights to an initial (untrained) state, but keep the existing vocabulary."""
       logger.info("resetting layer weights")
@@ -93,7 +92,7 @@ def process(args):
     walks = graph.build_deepwalk_corpus(G, num_paths=args.number_walks,
                                         path_length=args.walk_length, alpha=0, rand=random.Random(args.seed))
     print("Training...")
-    model = Word2VecPatched(walks, size=args.representation_size, window=args.window_size, min_count=0, workers=args.workers, iter=args.iter)
+    model = Word2VecPatched(walks, size=args.representation_size, window=args.window_size, min_count=0, workers=args.workers, iter=args.iter, sg=1, trim_rule=None)
   else:
     print("Data size {} is larger than limit (max-memory-data-size: {}).  Dumping walks to disk.".format(data_size, args.max_memory_data_size))
     print("Walking...")
@@ -125,13 +124,14 @@ def process(args):
 
     print("Training...")
     model = Word2VecPatched(sentences=WalkIterator(),
-                     sg=1,
-                     size=args.representation_size,
-                     window=args.window_size,
-                     min_count=0,
-                     iter=args.iter,
-                     workers=args.workers,
-                     trim_rule=None)
+                            sg=1,
+                            vocabulary_counts=vertex_counts,
+                            size=args.representation_size,
+                            window=args.window_size,
+                            min_count=0,
+                            iter=args.iter,
+                            workers=args.workers,
+                            trim_rule=None)
 
   model.save_word2vec_format(args.output)
 

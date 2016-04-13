@@ -12,7 +12,6 @@ import logging
 from skipgram import Skipgram
 from deepwalk import graph
 from deepwalk import walks as serialized_walks
-from gensim.models import Word2Vec
 import numpy as np
 
 from six import text_type as unicode

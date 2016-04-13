@@ -29,7 +29,7 @@ class Skipgram(Word2Vec):
       self.syn0_lockf = ones(len(self.vocab), dtype=REAL)  # zeros suppress learning
 
     def __init__(self, vocabulary_counts=None, **kwargs):
-
+        self.syn0 = np.empty((len(self.vocab), self.vector_size), dtype=REAL)
         self.vocabulary_counts = None
 
         kwargs["min_count"] = kwargs.get("min_count", 1)
